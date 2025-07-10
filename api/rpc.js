@@ -18,7 +18,7 @@ export default async function handler(req, res) {
       const detectedType = await FileType.fileTypeFromBuffer(buffer);
       const contentType = detectedType ? detectedType.mime : 'application/octet-stream';
 
-      const bundlr = new Bundlr.default('https://node1.bundlr.network', 'matic', privateKey);
+      const bundlr = new Bundlr('https://node1.bundlr.network', 'matic', privateKey);
 
       try {
         const tx = await bundlr.upload(buffer, {
@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         });
 
       } catch (err) {
-        console.error("Bundlr error:", err);
+        console.error("Bundlr upload error:", err);
         return res.status(500).json({ error: err.message || "Upload failed" });
       }
     }
@@ -39,7 +39,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: "Unknown method" });
 
   } catch (err) {
-    console.error("Unexpected error:", err);
+    console.error("Unexpected server error:", err);
     return res.status(500).json({ error: err.message || "Internal server error" });
   }
 }
