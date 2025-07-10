@@ -4,9 +4,9 @@ import { fromBuffer } from 'file-type';
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: "Method Not Allowed" });
 
-  const { method, params } = req.body;
-
   try {
+    const { method, params } = req.body;
+
     if (method === 'uploadToArweave') {
       const { privateKey, fileData } = params;
       if (!privateKey || !fileData) {
