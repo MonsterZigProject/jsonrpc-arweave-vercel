@@ -1,7 +1,7 @@
 {
   "name": "my-jsonrpc-app",
   "version": "1.0.0",
-  "description": "Simple JSON-RPC serverless API on Vercel",
+  "description": "JSON-RPC serverless API on Vercel",
   "scripts": {
     "dev": "vercel dev",
     "start": "vercel dev",
