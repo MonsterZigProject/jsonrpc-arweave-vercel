@@ -23,36 +23,35 @@ export default async function handler(req, res) {
 
       // init bundlr
       const bundlr = new Bundlr('https://node1.bundlr.network', 'matic', privateKey);
-      console.log("Wallet address:", bundlr.address);
 
-      // cek saldo on-chain
-      const onChainBalance = await bundlr.getBalance(bundlr.address);
-      console.log("On-chain MATIC balance:", bundlr.utils.unitConverter(onChainBalance).toString(), "MATIC");
-
-      // cek bundlr loaded balance
+      // cek bundlr balance
       let bundlrBalance = await bundlr.getLoadedBalance();
       console.log("Bundlr loaded balance:", bundlr.utils.unitConverter(bundlrBalance).toString(), "MATIC");
 
-      // auto fund bundlr jika perlu
+      // auto fund jika balance rendah
       if (bundlrBalance < 1000000) {
         console.log("Low bundlr balance, funding with 0.001 MATIC...");
         const fundTx = await bundlr.fund(1000000);
         console.log("Fund tx id:", fundTx.id);
 
-        // update bundlr balance
+        // update balance
         bundlrBalance = await bundlr.getLoadedBalance();
         console.log("New bundlr balance:", bundlr.utils.unitConverter(bundlrBalance).toString(), "MATIC");
       }
 
-      // upload ke arweave
-      const tx = await bundlr.upload(buffer, {
+      // create, sign, upload transaction
+      const tx = bundlr.createTransaction(buffer, {
         tags: [{ name: "Content-Type", value: contentType }]
       });
-      console.log(`✅ Uploaded to Arweave: https://arweave.net/${tx.id}`);
+      await tx.sign();
+      const response = await tx.upload();
+
+      console.log("Upload status:", response.status);
 
       return res.status(200).json({
         result: `https://arweave.net/${tx.id}`,
-        contentType
+        contentType,
+        status: response.status
       });
     }
 
