@@ -1,7 +1,14 @@
 import Bundlr from '@bundlr-network/client';
-import { fromBuffer } from 'file-type';
 
 export default async function handler(req, res) {
+  let fromBuffer;
+  try {
+    ({ fromBuffer } = await import('file-type'));
+  } catch (e) {
+    console.error("Failed to import file-type", e);
+    return res.status(500).json({ error: "file-type module failed to load" });
+  }
+
   if (req.method !== 'POST') return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
