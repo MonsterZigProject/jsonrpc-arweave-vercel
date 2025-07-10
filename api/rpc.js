@@ -16,42 +16,33 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Missing privateKey or fileData" });
       }
 
-      // decode file
       const buffer = Buffer.from(fileData, 'base64');
       const detectedType = await FileType.fileTypeFromBuffer(buffer);
       const contentType = detectedType ? detectedType.mime : 'application/octet-stream';
 
-      // init bundlr
       const bundlr = new Bundlr('https://node1.bundlr.network', 'matic', privateKey);
 
-      // cek bundlr balance
       let bundlrBalance = await bundlr.getLoadedBalance();
-      console.log("Bundlr loaded balance:", bundlr.utils.unitConverter(bundlrBalance).toString(), "MATIC");
-
-      // auto fund jika balance rendah
       if (bundlrBalance < 1000000) {
-        console.log("Low bundlr balance, funding with 0.001 MATIC...");
-        const fundTx = await bundlr.fund(1000000);
-        console.log("Fund tx id:", fundTx.id);
-
-        // update balance
+        console.log("Low bundlr balance, funding...");
+        await bundlr.fund(1000000);
         bundlrBalance = await bundlr.getLoadedBalance();
-        console.log("New bundlr balance:", bundlr.utils.unitConverter(bundlrBalance).toString(), "MATIC");
       }
 
-      // create, sign, upload transaction
+      // create, sign, upload
       const tx = bundlr.createTransaction(buffer, {
         tags: [{ name: "Content-Type", value: contentType }]
       });
       await tx.sign();
-      const response = await tx.upload();
+      const result = await tx.upload();
 
-      console.log("Upload status:", response.status);
+      console.log("Upload result:", result);
+      console.log("✅ Uploaded to Arweave:", `https://arweave.net/${tx.id}`);
 
       return res.status(200).json({
         result: `https://arweave.net/${tx.id}`,
         contentType,
-        status: response.status
+        upload: result
       });
     }
 
